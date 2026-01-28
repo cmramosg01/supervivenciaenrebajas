@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío Matemático: Proporcionalidad v4.2 (Sonidos)</title>
+    <!-- MathJax para fórmulas matemáticas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
+            --success: #10b981;
+            --error: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        #app {
+            width: 100%;
+            max-width: 850px;
+            height: 100vh;
+            max-height: 900px;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            #app {
+                height: 90vh;
+                border-radius: 20px;
+                border: 1px solid #e2e8f0;
+            }
+        }
+
+        /* PANTALLAS */
+        .screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+            overflow-y: auto;
+        }
+        .screen.active { display: flex; }
+
+        /* HUD */
+        #hud {
+            padding: 1rem 2rem;
+            background: rgba(255,255,255,0.95);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .stat-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-value { font-size: 1.2rem; color: var(--primary); font-weight: 800; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.05em; }
+
+        /* PREGUNTA */
+        .question-container {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            line-height: 1.4;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+            width: 100%;
+        }
+        @media(min-width: 600px) { .options-grid { grid-template-columns: 1fr 1fr; } }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            position: relative;
+            color: var(--text-main);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--primary);
+            background: #eef2ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .option-btn.correct { border-color: var(--success); background: #ecfdf5; color: #065f46; }
+        .option-btn.wrong { border-color: var(--error); background: #fef2f2; color: #991b1b; }
+        .option-btn.disabled { pointer-events: none; opacity: 0.9; }
+
+        /* CONTROLES */
+        .controls {
+            margin-top: 2rem;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+        .btn:active { transform: scale(0.95); }
+
+        /* BONUS (Vasitos) */
+        #bonus-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .cups-area { display: flex; gap: 2rem; margin-top: 3rem; flex-wrap: wrap; justify-content: center; }
+        .cup-container { text-align: center; cursor: pointer; transition: transform 0.3s; position: relative; width: 100px; height: 120px; }
+        .cup-container:hover { transform: scale(1.1); }
+
+        .cup {
+            width: 90px; height: 110px;
+            background: #f59e0b;
+            border-radius: 12px 12px 45px 45px;
+            position: absolute;
+            top: 0; left: 5px;
+            z-index: 2;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.5rem;
+            border-bottom: 8px solid #d97706;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        
+        .cup::after {
+            content: ''; position: absolute; top: -5px; left: 0; width: 90px; height: 20px;
+            background: #fbbf24; border-radius: 50%;
+        }
+
+        .prize {
+            position: absolute; bottom: 10px; left: 0; width: 100%;
+            font-weight: bold; color: #fbbf24; font-size: 1.5rem;
+            opacity: 0; transition: all 0.5s;
+        }
+
+        .cup-container.revealed .cup { transform: translateY(-80px); }
+        .cup-container.revealed .prize { opacity: 1; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- PANTALLA INICIO -->
+    <div id="screen-start" class="screen active">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+        <h1 style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; line-height: 1.1;">Supervivencia en Rebajas</h1>
+        <p style="color: var(--text-light); margin-bottom: 2rem; max-width: 500px;">
+            Demuestra que sabes calcular el precio final sin que te engañen.
+            <br>Incluye: <strong>IV, Descuentos encadenados, IVA y Proporcionalidad.</strong>
+        </p>
+        <button class="btn" onclick="game.start()">¡EMPEZAR!</button>
+        <p style="margin-top: 1rem; font-size: 0.8rem; color: #94a3b8;">40+ preguntas distintas</p>
+    </div>
+
+    <!-- PANTALLA JUEGO -->
+    <div id="screen-game" class="screen" style="padding-top: 0; justify-content: flex-start;">
+        <div id="hud">
+            <div class="stat-group">
+                <div class="stat-box"><span class="stat-label">Nivel</span><span class="stat-value"><span id="lbl-current">1</span>/<span id="lbl-total">10</span></span></div>
+                <div class="stat-box"><span class="stat-label">Puntos</span><span class="stat-value" id="lbl-score">0</span></div>
+            </div>
+            <div class="stat-box"><span class="stat-label">Racha 🔥</span><span class="stat-value" id="lbl-streak">0</span></div>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text" class="question-text"></div>
+            <div id="options-grid" class="options-grid"></div>
+            <div class="controls">
+                <button id="btn-next" class="btn" style="display: none;" onclick="game.nextQuestion()">Siguiente ➜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BONUS OVERLAY -->
+    <div id="bonus-overlay">
+        <h2 style="font-size: 3rem; margin: 0; color: #fbbf24; text-shadow: 0 4px 0 #b45309;">¡BONUS TRACK!</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Racha de 3 aciertos. ¡Levanta un vaso!</p>
+        <div class="cups-area" id="cups-area"></div>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="screen-end" class="screen">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎓</div>
+        <h1>¡Fin de la partida!</h1>
+        <p>Tu puntuación final:</p>
+        <div style="font-size: 5rem; font-weight: 800; color: var(--primary); margin: 1rem 0; text-shadow: 2px 2px 0px rgba(0,0,0,0.1);" id="final-score">0</div>
+        <p style="color: var(--text-light); margin-bottom: 2rem;">¿Podrás superar tu récord?</p>
+        <button class="btn" onclick="location.reload()">Jugar de Nuevo</button>
+    </div>
+</div>
+
+<script>
+    /* --- GRAN BANCO DE PREGUNTAS (40+) ---
+       Categorías:
+       - IV: Índice de variación simple
+       - CALC: Cálculo numérico directo
+       - CADENA: Descuentos sucesivos
+       - CONCEPT: Teoría (Directa/Inversa)
+    */
+    const masterDB = [
+        // --- SECCIÓN: ÍNDICE DE VARIACIÓN (IV) ---
+        { q: "¿Cuál es el IV correspondiente a un aumento del 10%?", correct: "1,10", wrong: ["0,90", "0,10", "1,01"] },
+        { q: "¿Cuál es el IV para un aumento del 50%?", correct: "1,50", wrong: ["0,50", "1,05", "150"] },
+        { q: "¿Cuál es el IV para una rebaja del 20%?", correct: "0,80", wrong: ["1,20", "0,20", "0,08"] },
+        { q: "¿Cuál es el IV para una rebaja del 5%?", correct: "0,95", wrong: ["1,05", "0,50", "0,05"] },
+        { q: "¿Cuál es el IV si me descuentan el 15%?", correct: "0,85", wrong: ["1,15", "0,15", "8,5"] },
+        { q: "¿Cuál es el IV correspondiente al IVA general (21%)?", correct: "1,21", wrong: ["0,79", "0,21", "1,021"] },
+        { q: "Si el IV es 1,40, ¿qué variación porcentual representa?", correct: "Aumento del 40%", wrong: ["Aumento del 4%", "Rebaja del 60%", "Rebaja del 40%"] },
+        { q: "Si el IV es 0,70, ¿qué variación porcentual representa?", correct: "Rebaja del 30%", wrong: ["Rebaja del 70%", "Aumento del 30%", "Aumento del 0,7%"] },
+        
+        // --- SECCIÓN: CÁLCULO MENTAL / RÁPIDO ---
+        { q: "Calcula el precio final: 100€ con un 20% de descuento.", correct: "80 €", wrong: ["120 €", "20 €", "98 €"] },
+        { q: "Calcula el precio final: 50€ con un 10% de aumento.", correct: "55 €", wrong: ["45 €", "60 €", "51 €"] },
+        { q: "Si algo cuesta 200€ y me descuentan el 50%...", correct: "Pago 100 €", wrong: ["Pago 150 €", "Pago 50 €", "Pago 0 €"] },
+        { q: "El 10% de 500 es...", correct: "50", wrong: ["5", "100", "5000"] },
+        { q: "El 50% de 24 es...", correct: "12", wrong: ["24", "48", "6"] },
+        { q: "Calcula el 25% de 40.", correct: "10", wrong: ["25", "4", "20"] },
+        
+        // --- SECCIÓN: ENCADENADOS Y TRAMPAS LÓGICAS ---
+        { q: "Si me hacen un descuento del 50% y luego otro del 50%...", correct: "Pago el 25% del total (no es gratis).", wrong: ["¡Me sale gratis!", "Pago el 50% en total.", "Me devuelven dinero."] },
+        { q: "Un aumento del 20% seguido de una rebaja del 20%...", correct: "El precio final es MENOR al inicial.", wrong: ["Me quedo igual (mismo precio).", "El precio final es MAYOR.", "No se puede calcular."] },
+        { q: "¿Cómo calculo el IV total de dos descuentos sucesivos?", correct: "Multiplicando los IV (IV1 · IV2).", wrong: ["Sumando los descuentos.", "Restando los descuentos.", "Haciendo la media."] },
+        { q: "Tienes un IV de 0,90 y luego otro de 0,90. El total es...", correct: "0,81 (Rebaja del 19%)", wrong: ["0,80 (Rebaja del 20%)", "1,80", "0,99"] },
+        
+        // --- SECCIÓN: CONCEPTOS PROPORCIONALIDAD ---
+        { q: "Velocidad y tiempo para un viaje fijo son magnitudes...", correct: "Inversamente proporcionales.", wrong: ["Directamente proporcionales.", "No proporcionales.", "Aleatorias."] },
+        { q: "Kilos de naranjas y precio total son magnitudes...", correct: "Directamente proporcionales.", wrong: ["Inversamente proporcionales.", "No proporcionales.", "Exponenciales."] },
+        { q: "Edad de una persona y su altura son magnitudes...", correct: "No proporcionales.", wrong: ["Directamente proporcionales.", "Inversamente proporcionales.", "Lineales."] },
+        { q: "Número de pintores y tiempo en pintar una pared...", correct: "Inversamente proporcionales.", wrong: ["Directamente proporcionales.", "No proporcionales.", "Cuadráticas."] },
+        { q: "¿Qué operación define la constante en la prop. DIRECTA?", correct: "La división (Razón constante).", wrong: ["La multiplicación.", "La suma.", "La resta."] },
+        { q: "¿Qué operación define la constante en la prop. INVERSA?", correct: "La multiplicación (Producto constante).", wrong: ["La división.", "La suma.", "La resta."] },
+        
+        // --- SECCIÓN: DEFINICIONES Y TEORÍA ---
+        { q: "¿Qué es una razón?", correct: "El cociente indicado entre dos números (a/b).", wrong: ["Una igualdad entre fracciones.", "El resultado de sumar datos.", "Un número entero."] },
+        { q: "¿Qué es una proporción?", correct: "La igualdad entre dos razones.", wrong: ["Una fracción simple.", "Un porcentaje.", "Un descuento."] },
+        { q: "¿Qué diferencia principal hay entre fracción y razón?", correct: "La razón admite decimales (ej: 1.5/2).", wrong: ["La fracción admite decimales.", "No hay diferencia.", "La razón siempre es mayor que 1."] },
+        
+        // --- SECCIÓN: SITUACIONES COTIDIANAS ---
+        { q: "En el 'Día sin IVA' (descuento equivalente), el IV es aprox...", correct: "0,79 (1/1,21)", wrong: ["0,21", "0,00", "1,21"] },
+        { q: "Si te cobran gastos de envío (+10%) sobre el precio...", correct: "El IV será 1,10", wrong: ["El IV será 0,90", "El IV será 0,10", "El IV será 1,00"] },
+        { q: "Comprar 3x2 es equivalente a...", correct: "Llevarse 3 pagando 2.", wrong: ["Un descuento del 50%.", "Un descuento del 20%.", "Pagar el triple."] },
+        
+        // --- SECCIÓN: NUMÉRICA PURA ---
+        { q: "Si x/4 = 3/2, ¿cuánto vale x?", correct: "6", wrong: ["5", "8", "1.5"] },
+        { q: "Si 5/10 = x/20, ¿cuánto vale x?", correct: "10", wrong: ["5", "15", "2"] },
+        { q: "El IV 1,07 corresponde a...", correct: "+7%", wrong: ["+70%", "+0,7%", "-7%"] },
+        { q: "El IV 0,05 corresponde a...", correct: "-95%", wrong: ["-5%", "+5%", "5%"] },
+        { q: "Para calcular el 18% de C, multiplico C por...", correct: "0,18", wrong: ["1,18", "18", "0,018"] },
+        { q: "Para aumentar C un 4%, multiplico por...", correct: "1,04", wrong: ["1,4", "0,04", "0,96"] }
+    ];
+
+    const GameConfig = { 
+        totalQuestions: 10,  // Número de preguntas por partida
+        pointsPerRight: 100, 
+        streakForBonus: 3 
+    };
+
+    window.game = {
+        state: { score: 0, streak: 0, currentQ: 0, queue: [] },
+
+        init: function() {
+            // ALGORITMO DE SELECCIÓN ALEATORIA
+            // Barajamos TODA la base de datos y cogemos las primeras 10
+            this.state.queue = [...masterDB]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, GameConfig.totalQuestions);
+        },
+
+        start: function() {
+            this.state.score = 0;
+            this.state.streak = 0;
+            this.state.currentQ = 0;
+            this.init();
+            this.showScreen('screen-game');
+            this.updateHUD();
+            this.loadQuestion();
+        },
+
+        loadQuestion: function() {
+            const qData = this.state.queue[this.state.currentQ];
+            const qTextEl = document.getElementById('question-text');
+            
+            // Animación de entrada
+            qTextEl.style.opacity = 0;
+            setTimeout(() => {
+                qTextEl.textContent = qData.q;
+                qTextEl.style.opacity = 1;
+            }, 200);
+
+            document.getElementById('btn-next').style.display = 'none';
+
+            // Preparar opciones
+            let wrongOptions = qData.wrong;
+            // Si es un string (error en definición DB), convertir a array
+            if (!Array.isArray(wrongOptions)) wrongOptions = [wrongOptions];
+
+            const options = [
+                { text: qData.correct, isCorrect: true },
+                ...wrongOptions.map(w => ({ text: w, isCorrect: false }))
+            ].sort(() => Math.random() - 0.5);
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.textContent = opt.text;
+                // Pequeño delay en la aparición de cada opción para efecto cascada
+                btn.style.animation = `fadeIn 0.3s ease-out ${idx * 0.1}s backwards`;
+                
+                btn.onclick = (e) => this.handleAnswer(e.currentTarget, opt.isCorrect);
+                grid.appendChild(btn);
+            });
+            
+            if (window.MathJax) MathJax.typesetPromise();
+        },
+
+        handleAnswer: function(btn, isCorrect) {
+            // Bloquear inputs
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.classList.add('disabled'));
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                this.state.score += GameConfig.pointsPerRight + (this.state.streak * 10);
+                this.state.streak++;
+                this.playSound('correct');
+            } else {
+                btn.classList.add('wrong');
+                this.state.streak = 0;
+                this.playSound('wrong');
+                // Resaltar la correcta
+                allBtns.forEach(b => {
+                    if (b.textContent === this.state.queue[this.state.currentQ].correct) b.classList.add('correct');
+                });
+            }
+
+            this.updateHUD();
+
+            // Comprobación de BONUS
+            if (isCorrect && this.state.streak > 0 && this.state.streak % GameConfig.streakForBonus === 0) {
+                setTimeout(() => this.triggerBonus(), 800);
+            } else {
+                // Mostrar botón siguiente
+                const nextBtn = document.getElementById('btn-next');
+                nextBtn.style.display = 'block';
+                // Scroll automático si es necesario en móviles
+                nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        },
+
+        nextQuestion: function() {
+            this.state.currentQ++;
+            if (this.state.currentQ >= this.state.queue.length) this.endGame();
+            else this.loadQuestion();
+        },
+
+        triggerBonus: function() {
+            const overlay = document.getElementById('bonus-overlay');
+            const cupArea = document.getElementById('cups-area');
+            overlay.style.display = 'flex';
+            cupArea.innerHTML = '';
+
+            // Generar 3 vasos con premios aleatorios
+            const rewards = [
+                { t: "+200", v: 200 },
+                { t: "x2", v: 'mult' },
+                { t: "+500", v: 500 }
+            ].sort(() => Math.random() - 0.5);
+
+            rewards.forEach(r => {
+                const cont = document.createElement('div');
+                cont.className = 'cup-container';
+                cont.innerHTML = `
+                    <div class="cup">🥤</div>
+                    <div class="prize">${r.t}</div>
+                `;
+                cont.onclick = () => {
+                    if (cont.classList.contains('revealed') || document.querySelector('.cup-container.revealed')) return;
+                    
+                    cont.classList.add('revealed');
+                    
+                    if (r.v === 'mult') this.state.score *= 2;
+                    else this.state.score += r.v;
+                    
+                    this.updateHUD();
+                    this.playSound('bonus');
+                    
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        this.nextQuestion(); // Pasar automáticamente tras bonus
+                    }, 2000);
+                };
+                cupArea.appendChild(cont);
+            });
+        },
+
+        endGame: function() {
+            this.showScreen('screen-end');
+            // Sonido TACHAAAN
+            this.playSound('win');
+            
+            // Efecto contador subiendo
+            const finalEl = document.getElementById('final-score');
+            const target = this.state.score;
+            let current = 0;
+            const step = Math.ceil(target / 50);
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                finalEl.textContent = current;
+            }, 30);
+        },
+
+        updateHUD: function() {
+            document.getElementById('lbl-score').textContent = this.state.score;
+            document.getElementById('lbl-streak').textContent = this.state.streak;
+            document.getElementById('lbl-current').textContent = this.state.queue.length > 0 ? (this.state.currentQ + 1) : 1;
+            document.getElementById('lbl-total').textContent = this.state.queue.length || 10;
+        },
+
+        showScreen: function(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        },
+
+        playSound: function(type) {
+            // Check for AudioContext support (some older browsers prefix it)
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+            
+            if (type === 'correct') {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                
+                osc.start(now);
+                osc.stop(now + 0.3);
+
+            } else if (type === 'wrong') {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                
+                osc.start(now);
+                osc.stop(now + 0.3);
+
+            } else if (type === 'bonus') {
+                // Campanita alegre y discreta (Ding!)
+                // Usamos dos osciladores para un sonido cristalino
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(1200, now); // Nota alta
+                gain1.gain.setValueAtTime(0, now);
+                gain1.gain.linearRampToValueAtTime(0.05, now + 0.05); // Ataque suave
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.5); // Decay largo
+                
+                osc1.start(now);
+                osc1.stop(now + 1.5);
+
+                // Armónico superior
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(2000, now); 
+                gain2.gain.setValueAtTime(0, now);
+                gain2.gain.linearRampToValueAtTime(0.02, now + 0.05);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                
+                osc2.start(now);
+                osc2.stop(now + 1.0);
+
+            } else if (type === 'win') {
+                // TACHAAAN (Acorde triunfal Do Mayor: C, E, G, C)
+                // Usamos ondas triangulares para que sea suave pero presente
+                const freqs = [523.25, 659.25, 783.99, 1046.50];
+                
+                freqs.forEach((f, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.value = f;
+                    
+                    // Efecto arpegio muy rápido
+                    const startTime = now + (i * 0.08); 
+                    
+                    gain.gain.setValueAtTime(0, startTime);
+                    gain.gain.linearRampToValueAtTime(0.1, startTime + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 2.5); // Sustain largo
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + 2.5);
+                });
+            }
+        }
+    };
+</script>
+
+</body>
+</html>
