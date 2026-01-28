@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desafío Matemático: Proporcionalidad v4.2 (Sonidos)</title>
+    <title>Supervivencia en Rebajas - CITE STEAM</title>
     <!-- MathJax para fórmulas matemáticas -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -60,7 +60,8 @@
             flex-direction: column;
             padding: 2rem;
             align-items: center;
-            justify-content: center;
+            /* Modificado para distribuir espacio entre contenido y pie de página */
+            justify-content: space-between; 
             text-align: center;
             animation: fadeIn 0.4s ease-out;
             overflow-y: auto;
@@ -215,6 +216,18 @@
         .cup-container.revealed .prize { opacity: 1; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CREDITOS FOOTER */
+        .footer-credits {
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
@@ -222,14 +235,27 @@
 <div id="app">
     <!-- PANTALLA INICIO -->
     <div id="screen-start" class="screen active">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
-        <h1 style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; line-height: 1.1;">Supervivencia en Rebajas</h1>
-        <p style="color: var(--text-light); margin-bottom: 2rem; max-width: 500px;">
-            Demuestra que sabes calcular el precio final sin que te engañen.
-            <br>Incluye: <strong>IV, Descuentos encadenados, IVA y Proporcionalidad.</strong>
-        </p>
-        <button class="btn" onclick="game.start()">¡EMPEZAR!</button>
-        <p style="margin-top: 1rem; font-size: 0.8rem; color: #94a3b8;">40+ preguntas distintas</p>
+        <!-- Espaciador superior para centrar verticalmente el contenido principal -->
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+            <h1 style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; line-height: 1.1;">Supervivencia en Rebajas</h1>
+            <p style="color: var(--text-light); margin-bottom: 2rem; max-width: 500px;">
+                Demuestra que sabes calcular el precio final sin que te engañen.
+                <br>Incluye: <strong>IV, Descuentos encadenados, IVA y Proporcionalidad.</strong>
+            </p>
+            <button class="btn" onclick="game.start()">¡EMPEZAR!</button>
+        </div>
+
+        <!-- PIE DE PÁGINA / CRÉDITOS -->
+        <div class="footer-credits">
+            <!-- AQUÍ SE CARGA EL LOGO (Debe llamarse logo.jpg en la misma carpeta) -->
+            <img src="logo.jpg" style="height: 50px; width: auto; margin-bottom: 5px; opacity: 0.9;" alt="Logo Proyecto CITE-STEAM">
+            
+            <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4; max-width: 600px;">
+                <p style="margin: 2px 0;">Juego para Matemáticas de 2ºESO elaborado por <strong>Cristina Ramos García</strong>.</p>
+                <p style="margin: 2px 0;">Proyecto CITE-STEAM "IA-FP y robótica inclusiva" del <strong>IES San José de Badajoz</strong> (2026)</p>
+            </div>
+        </div>
     </div>
 
     <!-- PANTALLA JUEGO -->
@@ -259,7 +285,7 @@
     </div>
 
     <!-- PANTALLA FINAL -->
-    <div id="screen-end" class="screen">
+    <div id="screen-end" class="screen" style="justify-content: center;">
         <div style="font-size: 4rem; margin-bottom: 1rem;">🎓</div>
         <h1>¡Fin de la partida!</h1>
         <p>Tu puntuación final:</p>
@@ -509,7 +535,7 @@
         },
 
         playSound: function(type) {
-            // Check for AudioContext support (some older browsers prefix it)
+            // Check for AudioContext support
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
             
@@ -550,7 +576,6 @@
 
             } else if (type === 'bonus') {
                 // Campanita alegre y discreta (Ding!)
-                // Usamos dos osciladores para un sonido cristalino
                 const osc1 = ctx.createOscillator();
                 const gain1 = ctx.createGain();
                 osc1.connect(gain1);
@@ -582,7 +607,6 @@
 
             } else if (type === 'win') {
                 // TACHAAAN (Acorde triunfal Do Mayor: C, E, G, C)
-                // Usamos ondas triangulares para que sea suave pero presente
                 const freqs = [523.25, 659.25, 783.99, 1046.50];
                 
                 freqs.forEach((f, i) => {
